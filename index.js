@@ -142,6 +142,40 @@ class RawDatabase {
         }
     }
 
+    async getByTerm(term) {
+        const { filePath } = await this.splitPath();
+    
+        try {
+            const fileStats = await fs.promises.stat(filePath);
+            const isLargeFile = fileStats.size > this.largeFileSizeLimit;
+            let result = null;
+    
+            if (isLargeFile) {
+                const stream = fs.createReadStream(filePath, { encoding: 'utf8' });
+                const rl = readline.createInterface({
+                    input: stream,
+                    output: process.stdout,
+                    terminal: false
+                });
+    
+                for await (const line of rl) {
+                    if (line.toLowerCase().includes(term.toLowerCase())) {
+                        result = line.trim();
+                        break;
+                    }
+                }
+            } else {
+                const data = await fs.promises.readFile(filePath, 'utf8');
+                const fileLines = data.trim().split('\n');
+                result = fileLines.find(line => line.toLowerCase().includes(term.toLowerCase())) || null;
+            }
+    
+            return result;
+        } catch (error) {
+            return null;
+        }
+    }
+    
     async deleteByTerm(term) {
         const { filePath } = await this.splitPath();
         

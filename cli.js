@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 const { Command } = require('commander');
 const RawDatabase = require('./db');
 
@@ -52,6 +54,20 @@ program
       console.log(`No row found at index ${index}`);
     }
   });
+
+program
+  .command('exists <file> <term>')
+  .description('Checks if a row containing the specified term exists')
+  .action(async (file, term) => {
+    const database = new RawDatabase(file, { baseDir: './data', fileExtension: '.dat' });
+    const row = await database.getRowByTerm(term); // Método que você precisa adicionar na classe RawDatabase
+    if (row) {
+      console.log(`Row found: ${row}`);
+    } else {
+      console.log(`No row found containing the term "${term}".`);
+    }
+  });
+
 
 program
   .command('deleteByTerm <file> <term>')
